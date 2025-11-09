@@ -124,3 +124,47 @@ _modules/*
 
 /results/
 /phpunit*.xml
+
+
+# CodeIgniter 4
+/writable/
+/env
+/public/assets/
+!public/assets/.gitkeep
+
+# Composer
+/vendor/
+/composer.lock
+
+# Environment
+.env
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Cache
+/writable/cache/
+
+# Session files
+/writable/session/
+
+# Debugging
+/writable/debugbar/
+
+# Backup files
+*.backup
+*.tmp
+
+# Test files
+/phpunit.xml
+/tests/_support/_generated/
