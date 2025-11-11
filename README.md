@@ -1,68 +1,82 @@
-# CodeIgniter 4 Application Starter
+# 🌎 AirSatN - Sistema Web para Monitoreo y Gestión de Lanzamientos CanSat
 
-## What is CodeIgniter?
+Este proyecto implementa un sistema web desarrollado en *CodeIgniter 4* que permite *visualizar en tiempo real los datos enviados por un CanSat, así como **gestionar los lanzamientos y almacenar los registros obtenidos durante cada uno*.  
+El sistema se conecta a una base de datos local llamada airsat, que contiene las lecturas capturadas por el CanSat y la información de los lanzamientos.
 
-CodeIgniter is a PHP full-stack web framework that is light, fast, flexible and secure.
-More information can be found at the [official site](https://codeigniter.com).
+---
 
-This repository holds a composer-installable app starter.
-It has been built from the
-[development repository](https://github.com/codeigniter4/CodeIgniter4).
+## 🚀 Funcionalidades principales
 
-More information about the plans for version 4 can be found in [CodeIgniter 4](https://forum.codeigniter.com/forumdisplay.php?fid=28) on the forums.
+### 🛰 1. Monitoreo en tiempo real
+- Muestra *el último dato registrado* en la tabla Lecturas con todos sus parámetros ambientales y de movimiento.
+- Actualización automática mediante *AJAX* sin recargar la página.
+- Visualización en *gráficas interactivas (Chart.js)* que se actualizan constantemente:
+  - Temperatura, humedad, presión, AQI, TVOC, eCO2, PM1, PM2.5, PM10.
+  - Aceleraciones en los tres ejes (AX, AY, AZ).
+  - Giroscopio en los tres ejes (GX, GY, GZ).
 
-You can read the [user guide](https://codeigniter.com/user_guide/)
-corresponding to the latest version of the framework.
+### 🚀 2. Gestión de lanzamientos
+- Permite *iniciar* y *finalizar* lanzamientos desde la interfaz web.
+- Al iniciar un lanzamiento se registra:
+  - Fecha y hora de inicio.
+  - Descripción del lanzamiento.
+  - Lugar de captura.  
+- Al finalizar el lanzamiento:
+  - Se guarda la fecha y hora de finalización.
+  - Se asocian automáticamente todas las lecturas obtenidas durante ese intervalo mediante la tabla Conexion.
 
-## Installation & updates
+### 📊 3. Histórico y exportación
+- Consulta de todos los lanzamientos registrados.
+- Visualización de las lecturas asociadas a cada lanzamiento.
+- Posibilidad de *exportar un lanzamiento individual o varios* al mismo tiempo en formato *PDF*, utilizando la librería dompdf.
 
-`composer create-project codeigniter4/appstarter` then `composer update` whenever
-there is a new release of the framework.
+---
 
-When updating, check the release notes to see if there are any changes you might need to apply
-to your `app` folder. The affected files can be copied or merged from
-`vendor/codeigniter4/framework/app`.
+## 🧩 Estructura de la base de datos
 
-## Setup
+La aplicación utiliza una base de datos MySQL local llamada airsat, con las siguientes tablas:
 
-Copy `env` to `.env` and tailor for your app, specifically the baseURL
-and any database settings.
+```sql
+USE airsat;
 
-## Important Change with index.php
+CREATE TABLE Lecturas (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    temperatura FLOAT,
+    humedad FLOAT,
+    presion_atmosferica FLOAT,
+    altura_absoluta FLOAT,
+    altura_relativa FLOAT,
+    AQI FLOAT,
+    TVOC FLOAT,
+    eCO2 FLOAT,
+    PM1 FLOAT,
+    PM2_5 FLOAT,
+    PM10 FLOAT,
+    AX FLOAT,
+    AY FLOAT,
+    AZ FLOAT,
+    GX FLOAT,
+    GY FLOAT,
+    GZ FLOAT,
+    fecha_hora DATETIME
+);
 
-`index.php` is no longer in the root of the project! It has been moved inside the *public* folder,
-for better security and separation of components.
+CREATE TABLE Lanzamiento (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    fecha_hora_inicio DATETIME,
+    fecha_hora_final DATETIME,
+    descripcion VARCHAR(255),
+    lugar_captura VARCHAR(255)
+);
 
-This means that you should configure your web server to "point" to your project's *public* folder, and
-not to the project root. A better practice would be to configure a virtual host to point there. A poor practice would be to point your web server to the project root and expect to enter *public/...*, as the rest of your logic and the
-framework are exposed.
-
-**Please** read the user guide for a better explanation of how CI4 works!
-
-## Repository Management
-
-We use GitHub issues, in our main repository, to track **BUGS** and to track approved **DEVELOPMENT** work packages.
-We use our [forum](http://forum.codeigniter.com) to provide SUPPORT and to discuss
-FEATURE REQUESTS.
-
-This repository is a "distribution" one, built by our release preparation script.
-Problems with it can be raised on our forum, or as issues in the main repository.
-
-## Server Requirements
-
-PHP version 8.1 or higher is required, with the following extensions installed:
-
-- [intl](http://php.net/manual/en/intl.requirements.php)
-- [mbstring](http://php.net/manual/en/mbstring.installation.php)
-
-> [!WARNING]
-> - The end of life date for PHP 7.4 was November 28, 2022.
-> - The end of life date for PHP 8.0 was November 26, 2023.
-> - If you are still using PHP 7.4 or 8.0, you should upgrade immediately.
-> - The end of life date for PHP 8.1 will be December 31, 2025.
-
-Additionally, make sure that the following extensions are enabled in your PHP:
-
-- json (enabled by default - don't turn it off)
-- [mysqlnd](http://php.net/manual/en/mysqlnd.install.php) if you plan to use MySQL
-- [libcurl](http://php.net/manual/en/curl.requirements.php) if you plan to use the HTTP\CURLRequest library
+CREATE TABLE Conexion (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    id_lecturas INT,
+    id_lanzamiento INT,
+    FOREIGN KEY (id_lecturas) REFERENCES Lecturas(id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+    FOREIGN KEY (id_lanzamiento) REFERENCES Lanzamiento(id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+);
