@@ -2,10 +2,28 @@
 
 namespace App\Controllers;
 
+use App\Models\LecturasModel;
+use App\Models\LanzamientoModel;
+
 class Home extends BaseController
 {
-    public function index(): string
+    protected $lecturasModel;
+    protected $lanzamientoModel;
+
+    public function __construct()
     {
-        return view('welcome_message');
+        $this->lecturasModel = new LecturasModel();
+        $this->lanzamientoModel = new LanzamientoModel();
+    }
+
+    public function index()
+    {
+        $data = [
+            'titulo' => 'Panel Principal - AirSat',
+            'ultimaLectura' => $this->lecturasModel->getUltimaLectura(),
+            'lanzamientoActivo' => $this->lanzamientoModel->getLanzamientoActivo()
+        ];
+
+        return view('index', $data);
     }
 }
