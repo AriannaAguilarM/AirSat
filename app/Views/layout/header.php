@@ -22,6 +22,11 @@
                     <li class="nav-item">
                         <a class="nav-link" href="<?= base_url('lanzamientos') ?>">Lanzamientos</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="<?= base_url('firebase-sync') ?>">
+                            <i class="fas fa-cloud-upload-alt"></i> Sincronizar Firebase
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>

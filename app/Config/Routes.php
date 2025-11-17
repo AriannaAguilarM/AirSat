@@ -6,6 +6,10 @@ use App\Controllers\ExportController;
 use App\Controllers\Home;
 use App\Controllers\LanzamientoController;
 use App\Controllers\LecturasController;
+use App\Controllers\FirebaseSyncController;
+use App\Controllers\DiagnosticoFirebase;
+use App\Controllers\TestEnv;
+
 
 /**
  * @var RouteCollection $routes
@@ -21,3 +25,9 @@ $routes->post('lanzamiento/finalizar/(:num)', 'LanzamientoController::finalizar/
 
 $routes->get('export/pdf/(:num)', 'ExportController::pdfLanzamiento/$1');
 $routes->post('export/multiples', 'ExportController::pdfMultiplesLanzamientos');
+
+$routes->get('firebase-sync', 'FirebaseSyncController::index');
+$routes->post('firebase-sync/sync', 'FirebaseSyncController::sync');
+$routes->get('firebase-sync/status', 'FirebaseSyncController::status');
+$routes->get('diagnosticofirebase', 'DiagnosticoFirebase::index');
+$routes->get('testenv', 'TestEnv::index');
