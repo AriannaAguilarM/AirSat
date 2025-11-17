@@ -1,4 +1,4 @@
-# 🌎 AirSatN - Sistema Web para Monitoreo y Gestión de Lanzamientos CanSat
+# 🌎 AirSat - Sistema Web para Monitoreo y Gestión de Lanzamientos CanSat
 
 Este proyecto implementa un sistema web desarrollado en *CodeIgniter 4* que permite *visualizar en tiempo real los datos enviados por un CanSat, así como **gestionar los lanzamientos y almacenar los registros obtenidos durante cada uno*.  
 El sistema se conecta a una base de datos local llamada airsat, que contiene las lecturas capturadas por el CanSat y la información de los lanzamientos.
