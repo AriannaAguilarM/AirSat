@@ -16,7 +16,7 @@ class LanzamientoModel extends Model
 
     public function getLanzamientosConLecturas()
     {
-        return $this->orderBy('fecha_hora_inicio', 'DESC')->findAll();
+        return $this->orderBy('id', 'DESC')->findAll();
     }
 
     public function iniciarLanzamiento($data)
