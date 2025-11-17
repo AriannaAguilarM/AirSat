@@ -46,9 +46,14 @@
                             <th>Temp (°C)</th>
                             <th>Hum (%)</th>
                             <th>Presión</th>
+                            <th>Alt.Abs</th>
+                            <th>Alt.Rel</th>
                             <th>AQI</th>
                             <th>TVOC</th>
                             <th>eCO2</th>
+                            <th>PM1</th>
+                            <th>PM2.5</th>
+                            <th>PM10</th>
                             <th>AX</th>
                             <th>AY</th>
                             <th>AZ</th>
@@ -61,9 +66,14 @@
                                 <td><?= $lectura['temperatura'] ?></td>
                                 <td><?= $lectura['humedad'] ?></td>
                                 <td><?= $lectura['presion_atmosferica'] ?></td>
+                                <td><?= $lectura['altura_absoluta'] ?></td>
+                                <td><?= $lectura['altura_relativa'] ?></td>
                                 <td><?= $lectura['AQI'] ?></td>
                                 <td><?= $lectura['TVOC'] ?></td>
                                 <td><?= $lectura['eCO2'] ?></td>
+                                <td><?= $lectura['PM1'] ?></td>
+                                <td><?= $lectura['PM2_5'] ?></td>
+                                <td><?= $lectura['PM10'] ?></td>
                                 <td><?= $lectura['AX'] ?></td>
                                 <td><?= $lectura['AY'] ?></td>
                                 <td><?= $lectura['AZ'] ?></td>

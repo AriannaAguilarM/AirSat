@@ -31,7 +31,9 @@ class ExportController extends BaseController
         $dompdf->setPaper('A4', 'landscape');
         $dompdf->render();
         
-        $dompdf->stream("lanzamiento_{$id}.pdf", ["Attachment" => true]);
+        // Mismo formato que múltiples lanzamientos
+        $filename = "lanzamiento_{$id}_" . date('Y-m-d_H-i-s') . ".pdf";
+        $dompdf->stream($filename, ["Attachment" => true]);
     }
 
     public function pdfMultiplesLanzamientos()
@@ -45,9 +47,16 @@ class ExportController extends BaseController
         $lanzamientos = [];
         foreach ($ids as $id) {
             $lanzamiento = $this->lanzamientoModel->find($id);
-            $lanzamiento['lecturas'] = $this->conexionModel->getLecturasPorLanzamiento($id);
-            $lanzamientos[] = $lanzamiento;
+            if ($lanzamiento) {
+                $lanzamiento['lecturas'] = $this->conexionModel->getLecturasPorLanzamiento($id);
+                $lanzamientos[] = $lanzamiento;
+            }
         }
+
+        // ✅ ORDENAR POR ID (numérico) en lugar de por fecha
+        usort($lanzamientos, function($a, $b) {
+            return $a['id'] - $b['id']; // Orden ascendente por ID
+        });
 
         $html = view('pdf/multiples_lanzamientos', ['lanzamientos' => $lanzamientos]);
 
@@ -56,6 +65,7 @@ class ExportController extends BaseController
         $dompdf->setPaper('A4', 'landscape');
         $dompdf->render();
         
-        $dompdf->stream("multiples_lanzamientos.pdf", ["Attachment" => true]);
+        $filename = "multiples_lanzamientos_" . date('Y-m-d_H-i-s') . ".pdf";
+        $dompdf->stream($filename, ["Attachment" => true]);
     }
 }
