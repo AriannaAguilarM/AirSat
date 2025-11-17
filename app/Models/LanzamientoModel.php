@@ -16,7 +16,7 @@ class LanzamientoModel extends Model
 
     public function getLanzamientosConLecturas()
     {
-        return $this->findAll();
+        return $this->orderBy('fecha_hora_inicio', 'DESC')->findAll();
     }
 
     public function iniciarLanzamiento($data)
@@ -31,6 +31,6 @@ class LanzamientoModel extends Model
 
     public function getLanzamientoActivo()
     {
-        return $this->where('fecha_hora_final', null)->first();
+        return $this->where('fecha_hora_final IS NULL')->first();
     }
 }

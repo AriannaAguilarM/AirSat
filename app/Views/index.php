@@ -100,13 +100,13 @@
                         <div class="row">
                             <div class="col-md-4">
                                 <div class="mb-3">
-                                    <label for="descripcion" class="form-label">Descripción</label>
+                                    <label for="descripcion" class="form-label">Descripción *</label>
                                     <input type="text" class="form-control" id="descripcion" name="descripcion" required>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="mb-3">
-                                    <label for="lugar_captura" class="form-label">Lugar de Captura</label>
+                                    <label for="lugar_captura" class="form-label">Lugar de Captura *</label>
                                     <input type="text" class="form-control" id="lugar_captura" name="lugar_captura" required>
                                 </div>
                             </div>
@@ -123,6 +123,7 @@
                         <h6>Lanzamiento Activo</h6>
                         <p><strong>Iniciado:</strong> <?= $lanzamientoActivo['fecha_hora_inicio'] ?></p>
                         <p><strong>Descripción:</strong> <?= $lanzamientoActivo['descripcion'] ?></p>
+                        <p><strong>Lugar:</strong> <?= $lanzamientoActivo['lugar_captura'] ?></p>
                         <form action="<?= base_url('lanzamiento/finalizar') ?>" method="post" class="mt-3">
                             <input type="hidden" name="id_lanzamiento" value="<?= $lanzamientoActivo['id'] ?>">
                             <button type="submit" class="btn btn-danger">Finalizar Lanzamiento</button>
