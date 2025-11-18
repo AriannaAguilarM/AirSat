@@ -9,6 +9,7 @@ use App\Controllers\LecturasController;
 use App\Controllers\FirebaseSyncController;
 use App\Controllers\DiagnosticoFirebase;
 use App\Controllers\TestEnv;
+use App\Controllers\AnalisisGeminiController;
 
 
 /**
@@ -31,3 +32,8 @@ $routes->post('firebase-sync/sync', 'FirebaseSyncController::sync');
 $routes->get('firebase-sync/status', 'FirebaseSyncController::status');
 $routes->get('diagnosticofirebase', 'DiagnosticoFirebase::index');
 $routes->get('testenv', 'TestEnv::index');
+
+$routes->get('analisis-gemini', 'AnalisisGeminiController::index');
+$routes->get('analisis-gemini/analizar/(:num)', 'AnalisisGeminiController::analizar/$1');
+$routes->get('analisis-gemini/resultado/(:num)', 'AnalisisGeminiController::resultado/$1');
+$routes->get('analisis-gemini/exportar-pdf/(:num)', 'AnalisisGeminiController::exportarPdf/$1');
