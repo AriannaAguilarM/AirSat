@@ -74,6 +74,7 @@
                         <div>Lecturas: <span id="countLecturas">-</span></div>
                         <div>Lanzamientos: <span id="countLanzamientos">-</span></div>
                         <div>Conexiones: <span id="countConexiones">-</span></div>
+                        <div>Análisis IA: <span id="countAnalisisIA">-</span></div>
                     </div>
                 </div>
             </div>
@@ -91,8 +92,10 @@
 │   └── {id}
 ├── lanzamientos/
 │   └── {id}
-└── conexion/
-    └── {id}
+├── conexion/
+│   └── {id}
+└── analisis_ia/
+    └── {id_lanzamiento}
                     </pre>
                 </div>
             </div>
@@ -174,23 +177,22 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function actualizarEstadoUI(estado) {
-        // Estado de conexión
-        const conexionBadge = document.getElementById('estadoConexionText');
-        if (estado.conexion) {
-            conexionBadge.className = 'badge bg-success';
-            conexionBadge.textContent = 'Conectado';
-            btnSincronizar.disabled = false;
-        } else {
-            conexionBadge.className = 'badge bg-danger';
-            conexionBadge.textContent = 'Desconectado';
-            btnSincronizar.disabled = true;
-        }
-
-        // Contadores locales
-        document.getElementById('countLecturas').textContent = estado.local.lecturas;
-        document.getElementById('countLanzamientos').textContent = estado.local.lanzamientos;
-        document.getElementById('countConexiones').textContent = estado.local.conexiones;
+    const conexionBadge = document.getElementById('estadoConexionText');
+    if (estado.conexion) {
+        conexionBadge.className = 'badge bg-success';
+        conexionBadge.textContent = 'Conectado';
+        btnSincronizar.disabled = false;
+    } else {
+        conexionBadge.className = 'badge bg-danger';
+        conexionBadge.textContent = 'Desconectado';
+        btnSincronizar.disabled = true;
     }
+
+    document.getElementById('countLecturas').textContent = estado.local.lecturas;
+    document.getElementById('countLanzamientos').textContent = estado.local.lanzamientos;
+    document.getElementById('countConexiones').textContent = estado.local.conexiones;
+    document.getElementById('countAnalisisIA').textContent = estado.local.analisis_ia;
+}
 
     function mostrarResultado(data) {
         resultados.style.display = 'block';
