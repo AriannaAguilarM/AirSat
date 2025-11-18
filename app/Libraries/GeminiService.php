@@ -8,7 +8,7 @@ class GeminiService
 {
     protected $apiKey;
     protected $baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
-    protected $conexionModel;
+    protected $firebaseService;
 
     public function __construct()
     {
@@ -16,7 +16,7 @@ class GeminiService
         if (empty($this->apiKey)) {
             throw new Exception('API Key de Gemini no configurada');
         }
-        $this->conexionModel = new \App\Models\ConexionModel();
+        $this->firebaseService = new FirebaseService();
     }
 
     public function analizarLanzamiento($lanzamiento, $lecturas)
@@ -27,6 +27,8 @@ class GeminiService
             $analisis = $this->llamarGemini($prompt);
             $analisisLimpio = $this->limpiarFormato($analisis);
             $this->guardarAnalisisEnBD($lanzamiento['id'], $analisisLimpio);
+            
+            $this->sincronizarAnalisisConFirebase($lanzamiento['id']);
             
             return $analisisLimpio;
             
@@ -47,7 +49,7 @@ class GeminiService
 ## DATOS ESTADÍSTICOS:
 {$estadisticas['texto']}
 
-Proporciona un análisis profesional que incluide:
+Proporciona un análisis profesional que incluya:
 
 1. RESUMEN EJECUTIVO
    - Contexto general del monitoreo
@@ -76,17 +78,13 @@ IMPORTANTE: Usa un formato limpio sin emojis, sin markdown, sin símbolos especi
 
     private function formatearInfoLanzamiento($lanzamiento)
     {
-        $lecturas = $this->conexionModel->getLecturasPorLanzamiento($lanzamiento['id']);
-        $totalLecturas = $lecturas ? count($lecturas) : 0;
-
         return "INFORMACIÓN DEL LANZAMIENTO
 ID: {$lanzamiento['id']}
 Descripción: {$lanzamiento['descripcion']}
 Lugar: {$lanzamiento['lugar_captura']}
 Fecha/Hora Inicio: {$lanzamiento['fecha_hora_inicio']}
 Fecha/Hora Fin: " . ($lanzamiento['fecha_hora_final'] ?? 'En progreso') . "
-Duración: " . $this->calcularDuracion($lanzamiento) . "
-Total de lecturas: {$totalLecturas}";
+Duración: " . $this->calcularDuracion($lanzamiento);
     }
 
     private function calcularEstadisticasCompletas($lecturas)
@@ -169,18 +167,11 @@ Total de lecturas: {$totalLecturas}";
     private function limpiarFormato($texto)
     {
         $limpiar = $texto;
-        
         $limpiar = preg_replace('/[\\*#_{}()\\[\\]]/', '', $limpiar);
-        
         $limpiar = preg_replace('/🎯|📊|⚠|🚀|🔍|📈|🛠|🛡|✅|❌|🌡|💧|🌫|🧪|🔥|🍃|👥|🏠|📞|💡|📍|📖|🎯|🤖/u', '', $limpiar);
-        
         $limpiar = str_replace(['', ''], '', $limpiar);
-        
         $limpiar = preg_replace('/\n\s*\n\s*\n/', "\n\n", $limpiar);
-        
-        $limpiar = trim($limpiar);
-        
-        return $limpiar;
+        return trim($limpiar);
     }
 
     private function calcularDuracion($lanzamiento)
@@ -192,7 +183,6 @@ Total de lecturas: {$totalLecturas}";
         $inicio = new \DateTime($lanzamiento['fecha_hora_inicio']);
         $fin = new \DateTime($lanzamiento['fecha_hora_final']);
         $diferencia = $inicio->diff($fin);
-
         return $diferencia->format('%H:%I:%S');
     }
 
@@ -220,10 +210,22 @@ Total de lecturas: {$totalLecturas}";
         }
     }
 
+    private function sincronizarAnalisisConFirebase($idLanzamiento)
+    {
+        $db = \Config\Database::connect();
+        $analisis = $db->table('analisis_ia')
+                      ->where('id_lanzamiento', $idLanzamiento)
+                      ->get()
+                      ->getRowArray();
+
+        if ($analisis && $this->firebaseService->isConnected()) {
+            $this->firebaseService->sincronizarAnalisisIA($analisis);
+        }
+    }
+
     public function obtenerAnalisisExistente($idLanzamiento)
     {
         $db = \Config\Database::connect();
-        
         $analisis = $db->table('analisis_ia')
                       ->where('id_lanzamiento', $idLanzamiento)
                       ->get()

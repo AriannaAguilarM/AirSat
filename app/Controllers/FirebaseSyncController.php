@@ -22,39 +22,33 @@ class FirebaseSyncController extends BaseController
         $this->conexionModel = new ConexionModel();
     }
 
-    /**
-     * Página principal de sincronización
-     */
     public function index()
     {
+        $firebaseConfig = new \Config\Firebase();
         $conexionStatus = $this->firebaseService->isConnected();
         
         $data = [
             'titulo' => 'Sincronización con Firebase - AirSat',
             'estadoConexion' => $conexionStatus,
             'config' => [
-                'projectId' => $_ENV['FIREBASE_PROJECT_ID'] ?? 'No configurado',
-                'databaseUrl' => $_ENV['FIREBASE_DATABASE_URL'] ?? 'No configurado'
+                'projectId' => $firebaseConfig->projectId,
+                'databaseUrl' => $firebaseConfig->databaseUrl
             ]
         ];
 
         return view('firebase_sync', $data);
     }
 
-    /**
-     * Sincronizar todos los datos con Firebase
-     */
     public function sync()
     {
         if (!$this->request->isAJAX()) {
             return redirect()->to('/firebase-sync');
         }
 
-        // Verificar conexión primero
         if (!$this->firebaseService->isConnected()) {
             return $this->response->setJSON([
                 'success' => false,
-                'message' => 'Error: No hay conexión con Firebase. Verifica la configuración.',
+                'message' => 'Error: No hay conexión con Firebase',
                 'type' => 'error'
             ]);
         }
@@ -63,22 +57,20 @@ class FirebaseSyncController extends BaseController
             $resultados = [
                 'lecturas' => $this->sincronizarLecturas(),
                 'lanzamientos' => $this->sincronizarLanzamientos(),
-                'conexiones' => $this->sincronizarConexiones()
+                'conexiones' => $this->sincronizarConexiones(),
+                'analisis_ia' => $this->sincronizarAnalisisIA()
             ];
 
             $totalNuevos = array_sum(array_column($resultados, 'nuevos'));
             $totalExistentes = array_sum(array_column($resultados, 'existentes'));
 
             if ($totalNuevos > 0) {
-                $mensaje = "✅ Sincronización completa. Se agregaron {$totalNuevos} nuevos registros a Firebase.";
+                $mensaje = "Sincronización completa. Se agregaron {$totalNuevos} nuevos registros a Firebase.";
                 $tipo = 'success';
             } else {
-                $mensaje = "ℹ No había datos nuevos para sincronizar. Todos los registros ya existen en Firebase.";
+                $mensaje = "No había datos nuevos para sincronizar. Todos los registros ya existen en Firebase.";
                 $tipo = 'info';
             }
-
-            // Registrar en log
-            log_message('info', "Sincronización Firebase completada - Proyecto: airsat-ia-392e8");
 
             return $this->response->setJSON([
                 'success' => true,
@@ -88,20 +80,14 @@ class FirebaseSyncController extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en sincronización Firebase: ' . $e->getMessage());
-            
             return $this->response->setJSON([
                 'success' => false,
-                'message' => '❌ Error en la sincronización: ' . $e->getMessage(),
+                'message' => 'Error en la sincronización: ' . $e->getMessage(),
                 'type' => 'error'
             ]);
         }
     }
 
-
-    /**
-     * Sincronizar lecturas
-     */
     private function sincronizarLecturas(): array
     {
         $lecturas = $this->lecturasModel->findAll();
@@ -117,7 +103,6 @@ class FirebaseSyncController extends BaseController
                 continue;
             }
 
-            // Preparar datos para Firebase
             $datosFirebase = [
                 'id' => $lectura['id'],
                 'temperatura' => $lectura['temperatura'] ?? null,
@@ -153,9 +138,6 @@ class FirebaseSyncController extends BaseController
         ];
     }
 
-    /**
-     * Sincronizar lanzamientos
-     */
     private function sincronizarLanzamientos(): array
     {
         $lanzamientos = $this->lanzamientoModel->findAll();
@@ -192,9 +174,6 @@ class FirebaseSyncController extends BaseController
         ];
     }
 
-    /**
-     * Sincronizar conexiones
-     */
     private function sincronizarConexiones(): array
     {
         $conexiones = $this->conexionModel->findAll();
@@ -229,31 +208,70 @@ class FirebaseSyncController extends BaseController
         ];
     }
 
-    /**
-     * Verificar estado de sincronización
-     */
+    private function sincronizarAnalisisIA(): array
+    {
+        $db = \Config\Database::connect();
+        $analisis = $db->table('analisis_ia')->get()->getResultArray();
+        
+        $nuevos = 0;
+        $existentes = 0;
+
+        foreach ($analisis as $analisisItem) {
+            $idLanzamiento = $analisisItem['id_lanzamiento'];
+            
+            if ($this->firebaseService->exists('airsat/analisis_ia', $idLanzamiento)) {
+                $existentes++;
+                continue;
+            }
+
+            $datosFirebase = [
+                'id_lanzamiento' => $analisisItem['id_lanzamiento'],
+                'analisis_texto' => $analisisItem['analisis_texto'],
+                'fecha_creacion' => $analisisItem['fecha_creacion'],
+                'modelo_utilizado' => $analisisItem['modelo_utilizado'],
+                'sync_timestamp' => date('Y-m-d H:i:s')
+            ];
+
+            if ($this->firebaseService->sincronizarAnalisisIA($datosFirebase)) {
+                $nuevos++;
+            }
+        }
+
+        return [
+            'total' => count($analisis),
+            'nuevos' => $nuevos,
+            'existentes' => $existentes
+        ];
+    }
+
     public function status()
     {
         try {
             $lecturasFirebase = $this->firebaseService->getAll('airsat/lecturas');
             $lanzamientosFirebase = $this->firebaseService->getAll('airsat/lanzamientos');
             $conexionesFirebase = $this->firebaseService->getAll('airsat/conexion');
+            $analisisFirebase = $this->firebaseService->getAll('airsat/analisis_ia');
 
             $lecturasLocal = $this->lecturasModel->countAll();
             $lanzamientosLocal = $this->lanzamientoModel->countAll();
             $conexionesLocal = $this->conexionModel->countAll();
+            
+            $db = \Config\Database::connect();
+            $analisisLocal = $db->table('analisis_ia')->countAllResults();
 
             $estado = [
                 'conexion' => $this->firebaseService->testConnection(),
                 'local' => [
                     'lecturas' => $lecturasLocal,
                     'lanzamientos' => $lanzamientosLocal,
-                    'conexiones' => $conexionesLocal
+                    'conexiones' => $conexionesLocal,
+                    'analisis_ia' => $analisisLocal
                 ],
                 'firebase' => [
                     'lecturas' => count($lecturasFirebase),
                     'lanzamientos' => count($lanzamientosFirebase),
-                    'conexiones' => count($conexionesFirebase)
+                    'conexiones' => count($conexionesFirebase),
+                    'analisis_ia' => count($analisisFirebase)
                 ]
             ];
 
